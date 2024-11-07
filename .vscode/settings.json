@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "string": "c",
+        "vector": "c",
+        "memory": "c",
+        "string_view": "c",
+        "system_error": "c"
+    }
+}
