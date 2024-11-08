@@ -4,23 +4,23 @@
 
 # TDA HASH
 
-## Repositorio de (Nombre Apellido) - (Padrón) - (Mail)
+## Repositorio de (Juan Ernesto Juarez Lezama) - (110418) - (jjuarez@gmail.com)
 
 - Para compilar:
 
 ```bash
-línea de compilación
+gcc -g tp_hash.c src/hash.c src/csv.c src/split.c -o tp_hash
 ```
 
 - Para ejecutar:
 
 ```bash
-línea de ejecución
+./tp_hash pokedex.csv
 ```
 
 - Para ejecutar con valgrind:
 ```bash
-línea con valgrind
+valgrind ./tp_hash pokedex.csv
 ```
 ---
 ##  Funcionamiento

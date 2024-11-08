@@ -102,11 +102,11 @@ void redimensionar_tabla_hash(hash_t* hash)
         nodo_par_t** par = &(hash->tabla_hash[i].par);
         while (*par) {
             size_t posicion_del_bloque;
-            nodo_par_t** nodo_final = obtener_par(nueva_tabla_hash, nueva_capacidad, (*par)->clave, &posicion_del_bloque);
+            nodo_par_t** posicion_final_para_el_par = obtener_par(nueva_tabla_hash, nueva_capacidad, (*par)->clave, &posicion_del_bloque);
             nodo_par_t* nodo_guardado = *par;
             (*par) = (*par)->siguiente;
-            *nodo_final = nodo_guardado;
             nodo_guardado->siguiente = NULL;
+            *posicion_final_para_el_par = nodo_guardado;
             nueva_tabla_hash[posicion_del_bloque].cantidad_pares++;
         }
     }
@@ -167,7 +167,8 @@ void* hash_quitar(hash_t* hash, char* clave)
     if (!hash || !clave)
         return NULL;
 
-    nodo_par_t** par = obtener_par(hash->tabla_hash, hash->capacidad_tabla_hash, clave, NULL);
+    size_t posicion_del_bloque;
+    nodo_par_t** par = obtener_par(hash->tabla_hash, hash->capacidad_tabla_hash, clave, &posicion_del_bloque);
     void* valor_guardado = NULL;
     if (*par) {
         valor_guardado = (*par)->valor;
@@ -175,6 +176,7 @@ void* hash_quitar(hash_t* hash, char* clave)
         (*par) = (*par)->siguiente;
         free(nodo_quitar->clave);
         free(nodo_quitar);
+        hash->tabla_hash[posicion_del_bloque].cantidad_pares--;
     }
     return valor_guardado;
 }
@@ -189,6 +191,7 @@ size_t hash_iterar(hash_t* hash, bool (*f)(char*, void*, void*), void* ctx)
         while (par){
             if (!f(par->clave, par->siguiente, ctx))
                 return contador+1;
+            par = par->siguiente;
             contador++;
         }
     }
