@@ -39,8 +39,7 @@ bool agregar_numero(const char *str, void *ctx)
 	return sscanf(str, "%d", (int *)ctx) == 1;
 }
 
-bool cargar_pokemones(struct archivo_csv *archivo_pokemones,
-					  hash_t* hash)
+bool cargar_pokemones(struct archivo_csv *archivo_pokemones, hash_t *hash)
 {
 	bool (*funciones[])(const char *,
 			    void *) = { agregar_nombre, agregar_tipo,
@@ -60,7 +59,8 @@ bool cargar_pokemones(struct archivo_csv *archivo_pokemones,
 			return false;
 		}
 		*nueva_ubicacion_pokemon = pokemon;
-		if (!hash_insertar(hash, pokemon.nombre, (void*)nueva_ubicacion_pokemon, NULL)) {
+		if (!hash_insertar(hash, pokemon.nombre,
+				   (void *)nueva_ubicacion_pokemon, NULL)) {
 			fprintf(stderr,
 				"Pokemon %s no se puede agregar correctamente a la lista\n",
 				pokemon.nombre);
@@ -110,11 +110,11 @@ void informacion_del_pokemon(Pokemon *pokemon_encontrado)
 	printf("   Resistencia: %d\n", pokemon_encontrado->resistencia);
 }
 
-bool imprimir_pokemones(char* clave, void* valor, void* ctx)
+bool imprimir_pokemones(char *clave, void *valor, void *ctx)
 {
-    printf("%li) %s\n", *(size_t*)ctx, clave);
-    (*(size_t*)ctx)++;
-    return true;
+	printf("%li) %s\n", *(size_t *)ctx, clave);
+	(*(size_t *)ctx)++;
+	return true;
 }
 
 int main(int argc, char *argv[])
@@ -137,8 +137,7 @@ int main(int argc, char *argv[])
 		return -3;
 	}
 
-	if (!cargar_pokemones(archivo_pokemones,
-						  diccionario_pokemon)) {
+	if (!cargar_pokemones(archivo_pokemones, diccionario_pokemon)) {
 		cerrar_archivo_csv(archivo_pokemones);
 		hash_destruir_todo(diccionario_pokemon, destruir_pokemones);
 		return -4;
@@ -148,41 +147,49 @@ int main(int argc, char *argv[])
 	bool seguir = true;
 
 	while (seguir) {
-        char texto[TEXTO_MAX];
+		char texto[TEXTO_MAX];
 		mostrar_menu();
 
-        if (fgets(texto, sizeof(texto), stdin)!=NULL) {
-            texto[strcspn(texto, "\n")] = '\0';
-            
-            if (strcmp(texto, "1") == 0) {
-                printf("¿Qué Pokemon buscamos?: ");
-                if (fgets(texto, sizeof(texto), stdin)!=NULL) { 
-                    texto[strcspn(texto, "\n")] = '\0';
-                    Pokemon* pokemon_encontrado = (Pokemon*)hash_buscar(diccionario_pokemon, texto);
-                    if (pokemon_encontrado) {
-                        informacion_del_pokemon(pokemon_encontrado);
-                    } else {
-                        printf("Pokemon no encontrado\n");
-                    }
-                }
+		if (fgets(texto, sizeof(texto), stdin) != NULL) {
+			texto[strcspn(texto, "\n")] = '\0';
 
-            } else if (strcmp(texto, "2") == 0) {
-                size_t cantidad_pokemones = hash_cantidad(diccionario_pokemon);
-                if (cantidad_pokemones == 0) {
-                    printf("No hay pokemones en el diccionario");
-                } else {
-                    size_t enumerador = 1;
-                    hash_iterar(diccionario_pokemon, imprimir_pokemones, &enumerador);
-                }
+			if (strcmp(texto, "1") == 0) {
+				printf("¿Qué Pokemon buscamos?: ");
+				if (fgets(texto, sizeof(texto), stdin) !=
+				    NULL) {
+					texto[strcspn(texto, "\n")] = '\0';
+					Pokemon *pokemon_encontrado =
+						(Pokemon *)hash_buscar(
+							diccionario_pokemon,
+							texto);
+					if (pokemon_encontrado) {
+						informacion_del_pokemon(
+							pokemon_encontrado);
+					} else {
+						printf("Pokemon no encontrado\n");
+					}
+				}
 
-            } else if (strcmp(texto, "3") == 0) {
-                seguir = false;
-            }
-            
-		    printf("\n");
-        } else {
-            printf("Error al leer\n");
-        }
+			} else if (strcmp(texto, "2") == 0) {
+				size_t cantidad_pokemones =
+					hash_cantidad(diccionario_pokemon);
+				if (cantidad_pokemones == 0) {
+					printf("No hay pokemones en el diccionario");
+				} else {
+					size_t enumerador = 1;
+					hash_iterar(diccionario_pokemon,
+						    imprimir_pokemones,
+						    &enumerador);
+				}
+
+			} else if (strcmp(texto, "3") == 0) {
+				seguir = false;
+			}
+
+			printf("\n");
+		} else {
+			printf("Error al leer\n");
+		}
 	}
 
 	hash_destruir_todo(diccionario_pokemon, destruir_pokemones);
