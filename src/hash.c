@@ -1,7 +1,6 @@
 #include "hash.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 const size_t CAPACIDAD_MINIMA = 3;
 const size_t CANTIDAD_MAXIMA_POR_BLOQUE = 7;
@@ -20,15 +19,15 @@ struct hash {
 	size_t cantidad_pares_totales;
 };
 
-unsigned int funcion_hash(const char *clave)
+size_t funcion_hash(const char *clave)
 {
-	unsigned int base = 2166136261U;
-	unsigned int dato = 16777619U;
+	size_t base = 2166136261U;
+	size_t dato = 16777619U;
 	for (size_t i = 0; clave[i] != '\0'; i++) {
-		base ^= (unsigned int)clave[i];
+		base ^= (size_t)clave[i];
 		base *= dato;
 	}
-	return (unsigned int)base;
+	return (size_t)base;
 }
 
 hash_t *hash_crear(size_t capacidad_inicial)
@@ -53,7 +52,7 @@ hash_t *hash_crear(size_t capacidad_inicial)
 
 size_t hash_cantidad(hash_t *hash)
 {
-	return hash->cantidad_pares_totales;
+	return !hash ? 0 : hash->cantidad_pares_totales;
 }
 
 nodo_par_t *crear_par(char *clave, void *valor)
@@ -71,19 +70,19 @@ nodo_par_t *crear_par(char *clave, void *valor)
 	return mi_par;
 }
 
-nodo_par_t **buscar_par(nodo_par_t **nodo_actual, char *clave)
+nodo_par_t **buscar_puntero_a_par(nodo_par_t **nodo_actual, char *clave)
 {
 	if (!*nodo_actual || strcmp((*nodo_actual)->clave, clave) == 0)
 		return nodo_actual;
-	return buscar_par(&(*nodo_actual)->siguiente, clave);
+	return buscar_puntero_a_par(&(*nodo_actual)->siguiente, clave);
 }
 
 nodo_par_t **obtener_puntero_a_par(nodo_par_t **tabla_hash, size_t tamaño,
 				   char *clave)
 {
-	unsigned int hasheo = funcion_hash((const char *)clave);
-	size_t posicion_en_la_tabla = (size_t)((size_t)hasheo % tamaño);
-	return buscar_par(&tabla_hash[posicion_en_la_tabla], clave);
+	size_t hasheo = funcion_hash((const char *)clave);
+	size_t posicion_en_la_tabla = hasheo % tamaño;
+	return buscar_puntero_a_par(&tabla_hash[posicion_en_la_tabla], clave);
 }
 
 bool redimensionar_tabla_hash(hash_t *hash)
@@ -94,7 +93,6 @@ bool redimensionar_tabla_hash(hash_t *hash)
 		calloc(nueva_capacidad, sizeof(nodo_par_t *));
 	if (!nueva_tabla_hash)
 		return false;
-
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
 		nodo_par_t **par = &(hash->tabla_hash[i]);
 		while (*par) {
@@ -151,38 +149,6 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 	return true;
 }
 
-// bool hash_insertar(hash_t* hash, char* clave, void* valor, void** encontrado)
-// {
-//     if (!hash || !clave)
-//         return false;
-
-//     if (tope_porcentaje_capacidad(hash)) {
-//         if (!redimensionar_tabla_hash(hash)) {
-//             return false;
-//         }
-//     }
-
-//     size_t posicion;
-//     nodo_par_t* nodo_anterior = NULL;
-//     nodo_par_t* nodo_actual = obtener_par(hash->tabla_hash, hash->capacidad_tabla_hash, clave, nodo_anterior, &posicion);
-
-//     if (!nodo_actual) {
-//         nodo_par_t* nuevo_par = crear_par(clave, valor);
-//         if (!nodo_anterior) {
-//             hash->tabla_hash[posicion] = nuevo_par;
-//         } else {
-//             nodo_anterior->siguiente = nuevo_par;
-//         }
-//         hash->cantidad_pares_totales++;
-//     } else {
-//         if (encontrado)
-//             *encontrado = nodo_actual->clave;
-//         nodo_actual->clave = clave;
-//     }
-
-//     return true;
-// }
-
 void *hash_buscar(hash_t *hash, char *clave)
 {
 	if (!hash || !clave)
@@ -210,10 +176,11 @@ void *hash_quitar(hash_t *hash, char *clave)
 	void *valor_guardado = NULL;
 	if (*par) {
 		valor_guardado = (*par)->valor;
-		nodo_par_t *nodo_quitar = (*par);
-		(*par) = (*par)->siguiente;
+		nodo_par_t *nodo_quitar = *par;
+		*par = (*par)->siguiente;
 		free(nodo_quitar->clave);
 		free(nodo_quitar);
+		hash->cantidad_pares_totales--;
 	}
 	return valor_guardado;
 }
@@ -221,12 +188,12 @@ void *hash_quitar(hash_t *hash, char *clave)
 size_t hash_iterar(hash_t *hash, bool (*f)(char *, void *, void *), void *ctx)
 {
 	if (!hash || !f)
-		return false;
+		return 0;
 	size_t contador = 0;
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
 		nodo_par_t *par = hash->tabla_hash[i];
 		while (par) {
-			if (!f(par->clave, par->siguiente, ctx))
+			if (!f(par->clave, par->valor, ctx))
 				return contador + 1;
 			par = par->siguiente;
 			contador++;
