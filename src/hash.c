@@ -21,13 +21,13 @@ struct hash {
 
 size_t funcion_hash(const char *clave)
 {
-	size_t base = 2166136261U;
-	size_t dato = 16777619U;
+	size_t valor_hash = 2166136261U;
+	size_t factor_primo = 16777619U;
 	for (size_t i = 0; clave[i] != '\0'; i++) {
-		base ^= (size_t)clave[i];
-		base *= dato;
+		valor_hash ^= (size_t)clave[i];
+		valor_hash *= factor_primo;
 	}
-	return (size_t)base;
+	return valor_hash;
 }
 
 hash_t *hash_crear(size_t capacidad_inicial)
@@ -93,6 +93,7 @@ bool redimensionar_tabla_hash(hash_t *hash)
 		calloc(nueva_capacidad, sizeof(nodo_par_t *));
 	if (!nueva_tabla_hash)
 		return false;
+		
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
 		nodo_par_t **par = &(hash->tabla_hash[i]);
 		while (*par) {

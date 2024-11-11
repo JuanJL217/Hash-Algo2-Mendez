@@ -27,19 +27,10 @@ valgrind ./tp_hash pokedex.csv
 
 Explicación de cómo funcionan las estructuras desarrolladas en el TP y el funcionamiento general del mismo.
 
-Aclarar en esta parte todas las decisiones que se tomaron al realizar el TP, cosas que no se aclaren en el enunciado, fragmentos de código que necesiten explicación extra, etc.
-
-Incluir **EN TODOS LOS TPS** los diagramas relevantes al problema (mayormente diagramas de memoria para explicar las estructuras, pero se pueden utilizar otros diagramas si es necesario).
-
-### Por ejemplo:
-
-El programa funciona abriendo el archivo pasado como parámetro y leyendolo línea por línea. Por cada línea crea un registro e intenta agregarlo al vector. La función de lectura intenta leer todo el archivo o hasta encontrar el primer error. Devuelve un vector con todos los registros creados.
-
 <div align="center">
-<img width="70%" src="img/diagrama1.svg">
+<img width="70%" src="img/hash_pokemones.svg">
 </div>
 
-En el archivo `sarasa.c` la función `funcion1` utiliza `realloc` para agrandar la zona de memoria utilizada para conquistar el mundo. El resultado de `realloc` lo guardo en una variable auxiliar para no perder el puntero original en caso de error:
 
 ```c
 int *vector = realloc(vector_original, (n+1)*sizeof(int));
@@ -50,8 +41,138 @@ vector_original = vector;
 ```
 
 
+# IMPLEMENTACIÓN TDA HASH
+
+- Para mi implementación decidí utilizar nodos enlazados y no el TDA Lista, debido a que estaría duplicando la cantidad de memoria que necesitaría. De nada me sirve crear nodos para guardar estructuras `clave - valor`, si mi nodo puede ser esa `clave - valor` y una referencia al siguiente nodo, a parte de tener que eliminar cada lista una vez pasemos toda la información de cada lista, entonces la mejor manera de tener un mejor rendimiento en la memoria es utilizar nodos enlazados, ya que todo mi hash dependerá de como mueva esos nodos cuando quiera redimensionar el vector.
+
 <div align="center">
-<img width="70%" src="img/diagrama2.svg">
+<img width="70%" src="img/hash_con_listas.svg">
+</div>
+
+<div align="center">
+<img width="70%" src="img/hash_con_nodos_enlazados.svg">
+</div>
+
+Mis estructuras para este TDA son las siguientes:
+
+```c
+typedef struct nodo_par {
+	char *clave;
+	void *valor;
+	struct nodo_par *siguiente;
+} nodo_par_t;
+
+struct hash {
+	nodo_par_t **tabla_hash;
+	size_t capacidad_tabla_hash;
+	size_t cantidad_pares_totales;
+};
+```
+
+- Para explicar un poco cómo funciona mi implementación, primero explicar como funciona mi función hash:
+
+```c
+size_t funcion_hash(const char *clave)
+{
+	size_t valor_hash = 2166136261U;
+	size_t factor_primo = 16777619U;
+	for (size_t i = 0; clave[i] != '\0'; i++) {
+        valor_hash ^= (size_t)clave[i];
+        valor_hash *= factor_primo;
+	}
+	return valor_hash;
+}
+```
+
+La función de has que elgí es: `FNV-1a`  
+Enlace: https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function  
+Lo que hace este algoritmo es tener 2 variables, un número llamado `valor_hash` que es un número base (valor inicial) donde vamos a contener el hasheo final, y otra variable `factor_primo` que, como su nombre indica, es un número primo, esto es así porque se demuestra que los números primos manejan mejor el factor de mezclar las cosas, mejor dicho, el hasheo tiende a ser diferente clave tras clave y eso ayuda a la dispersión de las claves, lo que significa que no habrá tantas colisiones.  
+El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la tabla ASCII, cada valor numerico se puede manejar como binario, entonces se aplica `XOR` entre el binario de `valor_hash` y el binario de del ASCII de cada caracter de la clave y luego el valor en decimal se multiplica con el número primo. Y así hasta iterar todos los caracteres de la clave.
+
+- Como vamos a trabajar con nodos enlazados, vamos a tener una función recursiva de busqueda para obtener la clave, ya sea para elimnar o insertar (todo es buscar).  
+Para poder apuntar a algún nodo, tenemos 2 maneras, haciendo simplemente `nodo_par_t* nodo = nodo_par`, aquí estoy apuntando directamente al nodo, por eso es un puntero simple, pero, ¿quién más está apuntando a mi nodo? Claro, el nodo anterior tiene la referencia a mi nodo con `->siguiente`. entonces, yo apuntaré a la dirección de memoria de `->siguiente`. Lo que genero con eso es que tengo una manipulación más directa de los nodos que con un nodo simple y minimizando los if (así como tener menos errores).
+
+```c
+nodo_par_t **buscar_puntero_a_par(nodo_par_t **nodo_actual, char *clave)
+{
+	if (!*nodo_actual || strcmp((*nodo_actual)->clave, clave) == 0)
+		return nodo_actual;
+	return buscar_puntero_a_par(&(*nodo_actual)->siguiente, clave);
+}
+
+nodo_par_t **obtener_puntero_a_par(nodo_par_t **tabla_hash, size_t tamaño,
+				   char *clave)
+{
+	size_t hasheo = funcion_hash((const char *)clave);
+	size_t posicion_en_la_tabla = hasheo % tamaño;
+	return buscar_puntero_a_par(&tabla_hash[posicion_en_la_tabla], clave);
+}
+```
+1) Le aplico una función de hash a la clave.  
+2) El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash.  
+3) Por último llamo a la función `buscar_puntero_a_par` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo).
+
+```c
+	nodo_par_t **par = obtener_puntero_a_par(
+		hash->tabla_hash, hash->capacidad_tabla_hash, clave);
+
+	void *devolver = NULL;
+
+	if (!*par) {
+		nodo_par_t *nuevo_par = crear_par(clave, valor);
+		if (!nuevo_par)
+			return false;
+		(*par) = nuevo_par;
+		hash->cantidad_pares_totales++;
+	} else {
+		devolver = (*par)->valor;
+		(*par)->valor = valor;
+	}
+```
+Aquí podemos apreciar que tenemos solo 1 verificación, si *par apunta a NULL o no. Si apunta a NULL, significa que la clave agregada es nueva, si nos hubiese dado una dirección válida, significa que la clave ya se encuentra insertada. Aquí no verificamos si hay algún elemento en primera posición. Visualmente tenemoes así:
+
+<div align="center">
+<img width="70%" src="img/puntero_doble.svg">
+</div>
+
+- Una de las partes fundamentales es cuando debemos redimensionar. Mi función es la siguiente:
+
+```c
+bool redimensionar_tabla_hash(hash_t *hash)
+{
+	size_t nueva_capacidad =
+		hash->capacidad_tabla_hash * FACTOR_CRECIMIENTO;
+	nodo_par_t **nueva_tabla_hash =
+		calloc(nueva_capacidad, sizeof(nodo_par_t *));
+	if (!nueva_tabla_hash)
+		return false;
+
+	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
+		nodo_par_t **par = &(hash->tabla_hash[i]);
+		while (*par) {
+			nodo_par_t **posicion_final_para_el_par =
+				obtener_puntero_a_par(nueva_tabla_hash,
+						      nueva_capacidad,
+						      (*par)->clave);
+			nodo_par_t *nodo_guardado = *par;
+			(*par) = (*par)->siguiente;
+			nodo_guardado->siguiente = NULL;
+			*posicion_final_para_el_par = nodo_guardado;
+		}
+	}
+
+	free(hash->tabla_hash);
+	hash->tabla_hash = nueva_tabla_hash;
+	hash->capacidad_tabla_hash = nueva_capacidad;
+	return true;
+}
+
+Lo que hace este cóðigo es, en primer lugar, crear un nuevo vector con un tamaño duplicado al que ya tenía `FACTOR_CRECIMIENTO = 2`. Esta función es booleana, porque, en el caso que la creación del vector dé error sin verificación (que la funcion sea un `void`, en vez de un `bool`), significa que no debería ingresar nada al hash. Si yo ignoro esto, y decido insertar pares en mi tabla, aunque haya dado dicho error,, significa que no se va a redimensionar pero seguiré metiendo pares, lo que ocacionaria en un ciclo infinito de nunca redimensionar y mi tabla tendrá siempre dicha cantidad de bloques, y muchos pares, lo que se tardaría en poder buscar algún nodo.
+
+Una vez que creamos la nueva tabla hash, vamos a pasar todos los nodos existentes de mi antigua tabla, a la nueva tabla. Visualmente tenemos esto:
+
+<div align="center">
+<img width="70%" src="img/redimension_tabla_hash.svg">
 </div>
 
 ---
