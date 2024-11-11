@@ -85,7 +85,7 @@ size_t funcion_hash(const char *clave)
 ```
 
 La función de has que elgí es: `FNV-1a`  
-Enlace: https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function  
+Enlace: https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash
 Lo que hace este algoritmo es tener 2 variables, un número llamado `valor_hash` que es un número base (valor inicial) donde vamos a contener el hasheo final, y otra variable `factor_primo` que, como su nombre indica, es un número primo, esto es así porque se demuestra que los números primos manejan mejor el factor de mezclar las cosas, mejor dicho, el hasheo tiende a ser diferente clave tras clave y eso ayuda a la dispersión de las claves, lo que significa que no habrá tantas colisiones.  
 El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la tabla ASCII, cada valor numerico se puede manejar como binario, entonces se aplica `XOR` entre el binario de `valor_hash` y el binario de del ASCII de cada caracter de la clave y luego el valor en decimal se multiplica con el número primo. Y así hasta iterar todos los caracteres de la clave.
 
@@ -129,7 +129,7 @@ nodo_par_t **obtener_puntero_a_par(nodo_par_t **tabla_hash, size_t tamaño,
 		(*par)->valor = valor;
 	}
 ```
-Aquí podemos apreciar que tenemos solo 1 verificación, si *par apunta a NULL o no. Si apunta a NULL, significa que la clave agregada es nueva, si nos hubiese dado una dirección válida, significa que la clave ya se encuentra insertada. Aquí no verificamos si hay algún elemento en primera posición. Visualmente tenemoes así:
+En esta parte de la funcióñ `hash_insertar`, una vez que obtenemos dicho puntero doble, podemos apreciar que tenemos solo 1 verificación, si *par apunta a NULL o no. Si apunta a NULL, significa que la clave agregada es nueva, si nos hubiese dado una dirección válida, significa que la clave ya se encuentra insertada. Aquí no verificamos si hay algún elemento en primera posición. Visualmente tenemoes así:
 
 <div align="center">
 <img width="70%" src="img/puntero_doble.svg">
@@ -166,16 +166,16 @@ bool redimensionar_tabla_hash(hash_t *hash)
 	hash->capacidad_tabla_hash = nueva_capacidad;
 	return true;
 }
+```
 
 Lo que hace este cóðigo es, en primer lugar, crear un nuevo vector con un tamaño duplicado al que ya tenía `FACTOR_CRECIMIENTO = 2`. Esta función es booleana, porque, en el caso que la creación del vector dé error sin verificación (que la funcion sea un `void`, en vez de un `bool`), significa que no debería ingresar nada al hash. Si yo ignoro esto, y decido insertar pares en mi tabla, aunque haya dado dicho error,, significa que no se va a redimensionar pero seguiré metiendo pares, lo que ocacionaria en un ciclo infinito de nunca redimensionar y mi tabla tendrá siempre dicha cantidad de bloques, y muchos pares, lo que se tardaría en poder buscar algún nodo.
 
-Una vez que creamos la nueva tabla hash, vamos a pasar todos los nodos existentes de mi antigua tabla, a la nueva tabla. Visualmente tenemos esto:
+Una vez que creamos la nueva tabla hash, vamos a pasar todos los nodos existentes de mi antigua tabla, a la nueva tabla. Visualmente tenemos esto:  
 
 <div align="center">
-<img width="70%" src="img/redimension_tabla_hash.svg">
+<img width="70%" src="img/puntero_doble.svg">
 </div>
 
----
 
 ## Respuestas a las preguntas teóricas
 Incluír acá las respuestas a las preguntas del enunciado (si aplica).
