@@ -134,6 +134,8 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 	nodo_par_t **par = obtener_puntero_a_par(
 		hash->tabla_hash, hash->capacidad_tabla_hash, clave);
 
+	void *devolver = NULL;
+
 	if (!*par) {
 		nodo_par_t *nuevo_par = crear_par(clave, valor);
 		if (!nuevo_par)
@@ -141,10 +143,12 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 		(*par) = nuevo_par;
 		hash->cantidad_pares_totales++;
 	} else {
-		if (encontrado)
-			*encontrado = (*par)->valor;
+		devolver = (*par)->valor;
 		(*par)->valor = valor;
 	}
+
+	if (encontrado)
+		*encontrado = devolver;
 
 	return true;
 }
