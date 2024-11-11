@@ -1,9 +1,10 @@
 #include "hash.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 const size_t CAPACIDAD_MINIMA = 3;
-const size_t CANTIDAD_MAXIMA_POR_BLOQUE = 7;
+const size_t CANTIDAD_MAXIMA_POR_BLOQUE = 10;
 const size_t FACTOR_CRECIMIENTO = 2;
 const double FACTOR_PORCENTAJE_CAPACIDAD = 0.70;
 
@@ -13,8 +14,13 @@ typedef struct nodo_par {
 	struct nodo_par *siguiente;
 } nodo_par_t;
 
+typedef struct bloque {
+	size_t cantidad_pares;
+	nodo_par_t *nodo_inicio;
+} bloque_t;
+
 struct hash {
-	nodo_par_t **tabla_hash;
+	bloque_t *tabla_hash;
 	size_t capacidad_tabla_hash;
 	size_t cantidad_pares_totales;
 };
@@ -41,8 +47,7 @@ hash_t *hash_crear(size_t capacidad_inicial)
 	} else {
 		hash->capacidad_tabla_hash = capacidad_inicial;
 	}
-	hash->tabla_hash =
-		calloc(hash->capacidad_tabla_hash, sizeof(nodo_par_t *));
+	hash->tabla_hash = calloc(hash->capacidad_tabla_hash, sizeof(bloque_t));
 	if (!hash->tabla_hash) {
 		free(hash);
 		return NULL;
@@ -77,48 +82,60 @@ nodo_par_t **buscar_puntero_a_par(nodo_par_t **nodo_actual, char *clave)
 	return buscar_puntero_a_par(&(*nodo_actual)->siguiente, clave);
 }
 
-nodo_par_t **obtener_puntero_a_par(nodo_par_t **tabla_hash, size_t tamaño,
-				   char *clave)
+nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
+				   char *clave, size_t *posicion)
 {
 	size_t hasheo = funcion_hash((const char *)clave);
 	size_t posicion_en_la_tabla = hasheo % tamaño;
-	return buscar_puntero_a_par(&tabla_hash[posicion_en_la_tabla], clave);
+	if (posicion)
+		*posicion = posicion_en_la_tabla;
+	return buscar_puntero_a_par(
+		&tabla_hash[posicion_en_la_tabla].nodo_inicio, clave);
 }
 
-bool redimensionar_tabla_hash(hash_t *hash)
+bool redimensionar_tabla_hash(hash_t *hash,
+			      nodo_par_t ***actualizar_doble_puntero,
+			      char *clave, size_t *posicion)
 {
 	size_t nueva_capacidad =
 		hash->capacidad_tabla_hash * FACTOR_CRECIMIENTO;
-	nodo_par_t **nueva_tabla_hash =
-		calloc(nueva_capacidad, sizeof(nodo_par_t *));
+	bloque_t *nueva_tabla_hash = calloc(nueva_capacidad, sizeof(bloque_t));
 	if (!nueva_tabla_hash)
 		return false;
-		
+
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
-		nodo_par_t **par = &(hash->tabla_hash[i]);
+		nodo_par_t **par = &(hash->tabla_hash[i].nodo_inicio);
 		while (*par) {
+			size_t posicion_en_la_tabla;
 			nodo_par_t **posicion_final_para_el_par =
 				obtener_puntero_a_par(nueva_tabla_hash,
 						      nueva_capacidad,
-						      (*par)->clave);
+						      (*par)->clave,
+						      &posicion_en_la_tabla);
 			nodo_par_t *nodo_guardado = *par;
 			(*par) = (*par)->siguiente;
 			nodo_guardado->siguiente = NULL;
 			*posicion_final_para_el_par = nodo_guardado;
+			nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		}
 	}
-
 	free(hash->tabla_hash);
 	hash->tabla_hash = nueva_tabla_hash;
 	hash->capacidad_tabla_hash = nueva_capacidad;
+	*actualizar_doble_puntero = obtener_puntero_a_par(
+		hash->tabla_hash, hash->capacidad_tabla_hash, clave, posicion);
 	return true;
 }
 
-bool tope_porcentaje_capacidad(hash_t *hash)
+bool tope_porcentaje_de_capacidad(size_t cantidad_pares, double tamaño_tabla)
 {
-	return hash->cantidad_pares_totales >=
-	       (size_t)((double)hash->capacidad_tabla_hash *
-			FACTOR_PORCENTAJE_CAPACIDAD);
+	return cantidad_pares >=
+	       (size_t)(tamaño_tabla * FACTOR_PORCENTAJE_CAPACIDAD);
+}
+
+bool tope_maximo_nodos_enlazados(bloque_t *tabla, size_t posicion)
+{
+	return tabla[posicion].cantidad_pares >= CANTIDAD_MAXIMA_POR_BLOQUE;
 }
 
 bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
@@ -126,14 +143,20 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 	if (!hash || !clave)
 		return false;
 
-	if (tope_porcentaje_capacidad(hash)) {
-		if (!redimensionar_tabla_hash(hash)) {
+	size_t posicion_en_la_tabla;
+	nodo_par_t **par = obtener_puntero_a_par(hash->tabla_hash,
+						 hash->capacidad_tabla_hash,
+						 clave, &posicion_en_la_tabla);
+
+	if (tope_porcentaje_de_capacidad(hash->cantidad_pares_totales,
+					 (double)hash->capacidad_tabla_hash) ||
+	    tope_maximo_nodos_enlazados(hash->tabla_hash,
+					posicion_en_la_tabla)) {
+		if (!redimensionar_tabla_hash(hash, &par, clave,
+					      &posicion_en_la_tabla)) {
 			return false;
 		}
 	}
-
-	nodo_par_t **par = obtener_puntero_a_par(
-		hash->tabla_hash, hash->capacidad_tabla_hash, clave);
 
 	void *devolver = NULL;
 
@@ -142,6 +165,7 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 		if (!nuevo_par)
 			return false;
 		(*par) = nuevo_par;
+		hash->tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		hash->cantidad_pares_totales++;
 	} else {
 		devolver = (*par)->valor;
@@ -159,7 +183,7 @@ void *hash_buscar(hash_t *hash, char *clave)
 	if (!hash || !clave)
 		return NULL;
 	nodo_par_t **par = obtener_puntero_a_par(
-		hash->tabla_hash, hash->capacidad_tabla_hash, clave);
+		hash->tabla_hash, hash->capacidad_tabla_hash, clave, NULL);
 	return (*par) ? (*par)->valor : NULL;
 }
 
@@ -167,8 +191,8 @@ bool hash_contiene(hash_t *hash, char *clave)
 {
 	if (!hash || !clave)
 		return false;
-	return *(obtener_puntero_a_par(hash->tabla_hash,
-				       hash->capacidad_tabla_hash, clave));
+	return *(obtener_puntero_a_par(
+		hash->tabla_hash, hash->capacidad_tabla_hash, clave, NULL));
 }
 
 void *hash_quitar(hash_t *hash, char *clave)
@@ -176,8 +200,10 @@ void *hash_quitar(hash_t *hash, char *clave)
 	if (!hash || !clave)
 		return NULL;
 
-	nodo_par_t **par = obtener_puntero_a_par(
-		hash->tabla_hash, hash->capacidad_tabla_hash, clave);
+	size_t posicion_en_la_tabla;
+	nodo_par_t **par = obtener_puntero_a_par(hash->tabla_hash,
+						 hash->capacidad_tabla_hash,
+						 clave, &posicion_en_la_tabla);
 	void *valor_guardado = NULL;
 	if (*par) {
 		valor_guardado = (*par)->valor;
@@ -185,6 +211,7 @@ void *hash_quitar(hash_t *hash, char *clave)
 		*par = (*par)->siguiente;
 		free(nodo_quitar->clave);
 		free(nodo_quitar);
+		hash->tabla_hash[posicion_en_la_tabla].cantidad_pares--;
 		hash->cantidad_pares_totales--;
 	}
 	return valor_guardado;
@@ -196,7 +223,7 @@ size_t hash_iterar(hash_t *hash, bool (*f)(char *, void *, void *), void *ctx)
 		return 0;
 	size_t contador = 0;
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
-		nodo_par_t *par = hash->tabla_hash[i];
+		nodo_par_t *par = hash->tabla_hash[i].nodo_inicio;
 		while (par) {
 			if (!f(par->clave, par->valor, ctx))
 				return contador + 1;
@@ -217,7 +244,7 @@ void hash_destruir_todo(hash_t *hash, void (*destructor)(void *))
 	if (!hash)
 		return;
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
-		nodo_par_t *par = hash->tabla_hash[i];
+		nodo_par_t *par = hash->tabla_hash[i].nodo_inicio;
 		while (par) {
 			nodo_par_t *par_siguiente = par->siguiente;
 			if (destructor)
