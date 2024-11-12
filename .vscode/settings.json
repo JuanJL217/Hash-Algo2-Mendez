@@ -4,6 +4,8 @@
         "vector": "c",
         "memory": "c",
         "string_view": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "stdio.h": "c",
+        "string.h": "c"
     }
 }
