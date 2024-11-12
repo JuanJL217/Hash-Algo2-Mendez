@@ -51,7 +51,7 @@ vector_original = vector;
 </div>
 
 <div align="center">
-<img width="70%" src="img/hash_con_nodos_enlazados.svg">
+<img width="70%" src="img/hash_con_nodos_enlazados.png">
 </div>
 
 - Mis estructuras para este TDA son las siguientes:
