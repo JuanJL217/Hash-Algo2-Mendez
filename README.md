@@ -156,11 +156,15 @@ nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
 </div>
 
 <div align="center">
-<img width="70%" src="img/puntero_doble_repetido.svg">
+<img width="70%" src="img/puntero_doble_repetido.png">
 </div>
 
 <div align="center">
-<img width="70%" src="img/puntero_doble_nuevo.svg">
+<img width="70%" src="img/puntero_doble_nuevo.png">
+</div>
+
+<div align="center">
+<img width="70%" src="img/resultado_final.png">
 </div>
 
 ## REDIMENSION
