@@ -152,7 +152,15 @@ nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
 - Si apunta a NULL, significa que la clave es nueva, en cambio, si nos hubiese dado una dirección válida, significa que la clave ya se encuentra insertada. Con esto nos ahorramos verificar distintas cosas: Si trabajamos con puntero simple, tendriamos que hacer una validación de si la cantidad de pares en dicho bloque es 0 o no, si es 0, entonces le asigno como primer posicion, y si no, entonces pongo en siguiente del nodo final y también, al trabajar con punteros simple, debemos tener un puntero al nodo anterior, entonces en vez de tener más variables, hice 2 en 1. Visualmente tenemos esto con doble puntero:
 
 <div align="center">
-<img width="70%" src="img/puntero_doble.svg">
+<img width="70%" src="img/ejemplo.svg">
+</div>
+
+<div align="center">
+<img width="70%" src="img/puntero_doble_repetido.svg">
+</div>
+
+<div align="center">
+<img width="70%" src="img/puntero_doble_nuevo.svg">
 </div>
 
 ## REDIMENSION
