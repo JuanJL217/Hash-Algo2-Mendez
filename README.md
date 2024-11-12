@@ -189,7 +189,19 @@ bool redimensionar_tabla_hash(hash_t *hash,
 - Una vez que creamos la nueva tabla hash, vamos a pasar todos los nodos existentes de mi antigua tabla, a la nueva tabla. Visualmente tenemos esto:  
 
 <div align="center">
-<img width="70%" src="img/puntero_doble.svg">
+<img width="70%" src="img/paso_1_redimensionar.png">
+</div>
+
+<div align="center">
+<img width="70%" src="img/paso_2_redimensionar.png">
+</div>
+
+<div align="center">
+<img width="70%" src="img/paso_3_redimensionar.png">
+</div>
+
+<div align="center">
+<img width="70%" src="img/paso_4_redimensionar.png">
 </div>
 
 - Este es el código que hace todo esto:

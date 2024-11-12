@@ -104,18 +104,17 @@ bool redimensionar_tabla_hash(hash_t *hash,
 		return false;
 
 	for (size_t i = 0; i < hash->capacidad_tabla_hash; i++) {
-		nodo_par_t **par = &(hash->tabla_hash[i].nodo_inicio);
-		while (*par) {
+		nodo_par_t **nodo = &(hash->tabla_hash[i].nodo_inicio);
+		while (*nodo) {
 			size_t posicion_en_la_tabla;
-			nodo_par_t **posicion_final_para_el_par =
+			nodo_par_t **lugar_encontrado =
 				obtener_puntero_a_par(nueva_tabla_hash,
 						      nueva_capacidad,
-						      (*par)->clave,
+						      (*nodo)->clave,
 						      &posicion_en_la_tabla);
-			nodo_par_t *nodo_guardado = *par;
-			(*par) = (*par)->siguiente;
-			nodo_guardado->siguiente = NULL;
-			*posicion_final_para_el_par = nodo_guardado;
+			*lugar_encontrado = *nodo;
+			(*nodo) = (*nodo)->siguiente;
+			(*lugar_encontrado)->siguiente = NULL;
 			nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		}
 	}
