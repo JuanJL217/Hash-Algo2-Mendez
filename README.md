@@ -46,9 +46,13 @@ vector_original = vector;
 ## ESTRUCTURA
 - Para mi implementación decidí utilizar nodos enlazados y no el TDA Lista, debido a que, aunque ambos tiene el concepto de ser nodos enlazados, estaría duplicando la cantidad de memoria que necesitaría. De nada me sirve crear nodos para guardar estructuras `clave - valor`, si mi nodo puede ser esa `clave - valor` y una referencia al siguiente nodo. Otra razón fundamental es, que si mi tabla depende de Listas, si una Lista falla al crearse, todo el hash tendría que detenerse y eso no me conviene al momento de redimensionar.
 
+1) Listas 
+
 <div align="center">
 <img width="70%" src="img/hash_con_listas.png">
 </div>
+
+2) Nodos Enlazados 
 
 <div align="center">
 <img width="70%" src="img/hash_con_nodos_enlazados.png">
