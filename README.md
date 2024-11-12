@@ -53,7 +53,7 @@ vector_original = vector;
 <img width="70%" src="img/hash_con_nodos_enlazados.svg">
 </div>
 
-Mis estructuras para este TDA son las siguientes:
+1) Mis estructuras para este TDA son las siguientes:
 
 ```c
 typedef struct nodo_par {
@@ -74,9 +74,9 @@ struct hash {
 };
 ```
 
-Entonces decidí que mi TDA Hash, como estructura principal, tendremos un bloque que administra la cantidad de pares totales, la capacidad (tamaño) de mi tabla de hash y para mi caso en particular, decidí que cada bloque del vector contenga un indice de conteo para saber cuántos nodos tenemos enlazados en cada bloque y un puntero al inicio del recorrido de los nodos enlazados (Si no hay ningún nodo en algún bloque, ontonces hay `cantidad_pares` es `0` y `nodo_inicio` apunta a `NULL` en dicho bloque);
+Como estructura principal, tendremos un bloque que administra la cantidad de pares totales, la capacidad (tamaño) de mi tabla de hash y para mi caso en particular, decidí que cada bloque del vector contenga un indice de conteo para saber cuántos nodos tenemos enlazados en cada bloque y un puntero al inicio del recorrido de los nodos enlazados (Si no hay ningún nodo en algún bloque, ontonces hay `cantidad_pares` es `0` y `nodo_inicio` apunta a `NULL` en dicho bloque).
 
-- Para explicar un poco cómo funciona mi implementación, primero explicar como funciona mi función hash
+2) Para explicar un poco cómo funciona mi implementación, primero explicar como funciona mi función hash
 ```c
 size_t funcion_hash(const char *clave)
 {
@@ -90,12 +90,12 @@ size_t funcion_hash(const char *clave)
 }
 ```
 
-La función de has que elgí es: `FNV-1a`  
+La función de hash que elgí es el algoritmo `FNV-1a`  
 Enlace: https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1a_hash
 Lo que hace este algoritmo es tener 2 variables, un número llamado `valor_hash` que es un número base (valor inicial) donde vamos a contener el hasheo final, y otra variable `factor_primo` que, como su nombre indica, es un número primo, esto es así porque se demuestra que los números primos manejan mejor el factor de mezclar las cosas, mejor dicho, el hasheo tiende a ser diferente clave tras clave y eso ayuda a la dispersión de las claves, lo que significa que no habrá tantas colisiones.  
 El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la tabla ASCII, cada valor numerico se puede manejar como binario, entonces se aplica `XOR` entre el binario de `valor_hash` y el binario de del ASCII de cada caracter de la clave y luego el valor en decimal se multiplica con el número primo. Y así hasta iterar todos los caracteres de la clave.
 
-- Como vamos a trabajar con nodos enlazados, vamos a tener una función recursiva de busqueda para obtener algún nodo, ya sea para elimnar o insertar (todo es buscar).  
+3) Como vamos a trabajar con nodos enlazados, vamos a tener una función recursiva de busqueda para obtener algún nodo, ya sea para elimnar o insertar (todo es buscar).  
 Para poder apuntar a algún nodo, tenemos 2 maneras, haciendo simplemente `nodo_par_t* nodo = nodo_par` aquí estoy apuntando directamente al nodo, por eso es un puntero simple, pero, ¿quién más está apuntando a mi nodo? Claro, el nodo anterior tiene la referencia a mi nodo actual con `->siguiente`. entonces, yo apuntaré a la dirección de memoria de `->siguiente`. Lo que genero con eso es que tengo una manipulación más directa de los nodos que con un nodo simple y minimizando los if (así como tener menos errores).
 
 ```c
@@ -117,9 +117,9 @@ nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
 		&tabla_hash[posicion_en_la_tabla].nodo_inicio, clave);
 }
 ```
-1) Le aplico una función de hash a la clave.  
-2) El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash. Si la variable `posicion` no es NULL (parámetro), entonces le asginaré dicho valor numerico. Eso me servirá afuera de esta función para poder contabilidad la cantidad de nodos enlazados en cada bloque, si es que es una nueva clave.
-3) Por último llamo a la función recursiva `buscar_puntero_a_par` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo que ya existe la clave).
+- Le aplico una función de hash a la clave.  
+- El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash. Si la variable `posicion` no es NULL (parámetro), entonces le asginaré dicho valor numerico. Eso me servirá afuera de esta función para poder contabilidad la cantidad de nodos enlazados en cada bloque, si es que es una nueva clave.
+- Por último llamo a la función recursiva `buscar_puntero_a_par` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo que ya existe la clave).
 
 ```c
 	nodo_par_t **par = obtener_puntero_a_par(
@@ -144,7 +144,7 @@ En esta parte de la funcióñ `hash_insertar`, una vez que obtenemos dicho punte
 <img width="70%" src="img/puntero_doble.svg">
 </div>
 
-- Una de las partes fundamentales es cuando debemos redimensionar. Mi función es la siguiente:
+4) Una de las partes fundamentales es cuando debemos redimensionar. Mi función es la siguiente:
 
 ```c
 bool redimensionar_tabla_hash(hash_t *hash,
