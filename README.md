@@ -111,11 +111,11 @@ El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la ta
 Para poder apuntar a algún nodo, tenemos 2 maneras, haciendo simplemente `nodo_par_t* nodo = nodo_par` aquí estoy apuntando directamente al nodo, por eso es un puntero simple, pero, ¿quién más está apuntando a mi nodo? Claro, el nodo anterior tiene la referencia a mi nodo actual con `->siguiente`. entonces, yo apuntaré a la dirección de memoria de `->siguiente`. Lo que genero con eso es que tengo una manipulación más directa de los nodos que con un nodo simple y minimizando los if (así como tener menos errores).
 
 ```c
-	// Aquí llamamos a la funcion obtener_puntero_a_nodo dentro de la función hash_insertar
-	size_t posicion_en_la_tabla;
-	nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
-						 hash->capacidad_tabla_hash,
-						 clave, &posicion_en_la_tabla);
+// Aquí llamamos a la funcion obtener_puntero_a_nodo dentro de la función hash_insertar
+size_t posicion_en_la_tabla;
+nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
+						hash->capacidad_tabla_hash,
+						clave, &posicion_en_la_tabla);
 ```
 
 ```c
