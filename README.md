@@ -280,14 +280,14 @@ Así como en un diccionario tiene palabras y sus definiciones, en el ámbito de 
 Una función de hash se basa es la aplicación de diversos métodos matemáticos (sumar, restar, multiplicar, etc) para poder transformar una entrada (las claves), en alguna salida alfanumerica. Para nuestro caso en particular, solo será una salida numerica. Entonces la función de hash depende tanto del algoritmos matematico, como de la entrada.
 
 ## Qué es una tabla de Hash y los diferentes métodos de resolución de colisiones vistos (encadenamiento, probing, etc)
-Una tabla de hash, es una tabla donde cada posición de la tabla está asignado por alguna función de hash, o sea, para ingresar a alguna posición de la tabla (vector), vamos a depender de la transformación numérica (función de hash) de alguna entrada, y como resultado, tendremos alguna posición de la tabla. Siempre va a pasar que 2 o más entradas puedan tener el mismo resultado de salida, esto se le conoce como colisiones, aquí algunos métodos de resolución de colisiones.
+Una tabla de hash, es una tabla (vector) donde cada posición de la tabla está asignado por alguna función de hash, o sea, para ingresar a alguna posición de la tabla, vamos a depender de la transformación numérica (función de hash) de alguna entrada, y como resultado, tendremos alguna posición de la tabla. Siempre va a pasar que 2 o más entradas puedan tener el mismo resultado de salida, esto se le conoce como colisiones, aquí algunos métodos de resolución de colisiones.
 
 1) Encadenamiento (Hash abierto)
 - Este es el método que nosotros usamos para nuestra implementación de TDA Hash, en cuál consiste en que si 2 o más claves tienen la misma posición den la tabla de hash, van a ir, como el nombre dice, encadenados uno tras otro, en forma de una lista.  
 2) Probing lineal (Hash cerrado)  
 - Aquí, cuando una clave nueva tiene la misma posición que una clave ya existente, va a avanzar a la siguiente posición de la tabla a ver si el espacio está vacio. Si lo está se inserta ahí, si no lo está, sigue avanzando hasta encontrar donde insertarse.  
 3) Probing cuadrático (Hash cerrado)  
-- Cómo la idea anterior, va a buscar la posición "siguiente", porque, lo que hace el probing cuadrática es ver cuantas veces fallaste, elevarlo al cuadrado y moverte esa canidad de espacios. Ejemplo: La posicion de dicha clave dio 2, en la tabla está ocupado esa posición, entonces tuve 1 intento fallido: 1² = 1, avanzamos 1 posición; dicha posición también esta ocupada, tuvimos entonces 2 intentos fallidos: 2² = 4, avanzamos 4 posiciones; dicha posición también esta ocupada, tuvimos 3 intentos fallidos: 3² = 9, avanzamos 9 posiciones, y así hasta encontrar una posición vacía.  
+- Cómo la idea anterior, va a buscar la posición "siguiente", porque, lo que hace el probing cuadrático es ver cuantas veces fallaste, elevarlo al cuadrado y moverte esa canidad de espacios. Ejemplo: La posicion de dicha clave dio 2, en la tabla está ocupado esa posición, entonces tuve 1 intento fallido: 1² = 1, avanzamos 1 posición; dicha posición también esta ocupada, tuvimos entonces 2 intentos fallidos: 2² = 4, avanzamos 4 posiciones; dicha posición también esta ocupada, tuvimos 3 intentos fallidos: 3² = 9, avanzamos 9 posiciones, y así hasta encontrar una posición vacía.  
 4) Hash doble (Has cerrado)  
 - Si el lugar ya está ocupado, le aplica otra función de hash a la clave para poder insertar en la tabla.  
 
@@ -318,7 +318,7 @@ En lo personal, si quiero que este ordenado y sea rápido, obtaría por esta opc
 </div>
 
 ## Explique por qué es importante el tamaño de la tabla (tanto para tablas abiertas como cerradas)
-Para un Hash Cerrado, sabiendo que en cada bloque de mi tabla se va a almacenar una claves y valor, es esencial aumentar el tamaño, porque si no aumento el tamaño de mi tabla, no voy a poder seguir ingresando nuevos pares, entonces el tamaño sí importa.
+Para un Hash Cerrado, sabiendo que en cada bloque de mi tabla se va a almacenar una clave y valor, es esencial aumentar el tamaño, porque si no aumento el tamaño de mi tabla, no voy a poder seguir ingresando nuevos pares, entonces el tamaño sí importa.
 
-Para un Hash Abierto sabemos que podemos encadenar colisiones sin importa el tamaño de la tabla, ya que, si tenemos una tabla de 5 bloques, el problema es que si solo dependemos de esa cantidad de bloque, la busqueda de las clave se hace más compleja, porque vamos a tardanos más en encontrarla. Por esa razón es importante la redimensión de la tabla en un Hash Abierto, para así poder tener la menor cantidad de claves encadenadas en cada bloque y la busuqeda sea rápida.
+Para un Hash Abierto sabemos que podemos encadenar colisiones sin importa el tamaño de la tabla, ya que, si tenemos una tabla de 5 bloques, el problema es que si solo dependemos de esa cantidad de bloques, la busqueda de las clave se hace más compleja, porque vamos a tardanos más en encontrarla. Por esa razón es importante la redimensión de la tabla en un Hash Abierto, para así poder tener la menor cantidad de claves encadenadas en cada bloque y la busqueda sea rápida.
 
