@@ -43,6 +43,7 @@ typedef struct pokemon {
 ```
 
 # IMPLEMENTACIÓN TDA HASH
+Mencioanr que todas las imágenes mostradas están en el Heap.
 
 ## ESTRUCTURA
 - Para mi implementación decidí utilizar nodos enlazados y no el TDA Lista, debido a que, aunque ambos tiene el concepto de ser nodos enlazados, estaría duplicando la cantidad de memoria que necesitaría. De nada me sirve crear nodos para guardar estructuras `clave - valor`, si mi nodo puede ser esa `clave - valor` y una referencia al siguiente nodo. Otra razón fundamental es, que si mi tabla depende de Listas, si una Lista falla al crearse, todo el hash tendría que detenerse y eso no me conviene al momento de redimensionar.
@@ -270,8 +271,7 @@ bool tope_maximo_nodos_enlazados(bloque_t *tabla, size_t posicion)
 }
 ```
 
-## Respuestas a las preguntas teóricas
-Incluír acá las respuestas a las preguntas del enunciado (si aplica).
+## Preguntas:
 
 ## Qué es un diccionario
 Así como en un diccionario tiene palabras y sus definiciones, en el ámbito de la informática, se entiende como diccionario a aquello que existe 1 única clave (palabra) y esa clave tiene asociado un valor (definición) que es el contenido que guarda. Entones se dice que un diccionario es una colección de claves y cada clave única tiene asociado valores. Podemos acceder a los valores únicamente conociendo las claves.
@@ -318,7 +318,7 @@ En lo personal, si quiero que este ordenado y sea rápido, obtaría por esta opc
 </div>
 
 ## Explique por qué es importante el tamaño de la tabla (tanto para tablas abiertas como cerradas)
-Para un Hash Cerrado, sabiendo que la tabla de hash es donde voy a almacenar mis claves y valores, es esencial aumentar el tamaño, porque si no aumento el tamaño de mi tabla, no voy a poder seguir ingresando nuevos pares, entonces podemos concluir que el tamaño sí importa.
+Para un Hash Cerrado, sabiendo que en cada bloque de mi tabla se va a almacenar una claves y valor, es esencial aumentar el tamaño, porque si no aumento el tamaño de mi tabla, no voy a poder seguir ingresando nuevos pares, entonces el tamaño sí importa.
 
-Para un Hash Abierto, no es tan fácil verlo a simlpe vista. Sabemos que podemos encadenar colisiones sin importa el tamaño de la tabla, ya que, si tenemos una tabla de 5 bloques, y tenemos una función de hashing muy buena, donde la probabilidad de que la mayoría de los pares estén en un solo bloque, cada bloque podría tranquilamente tener todos las claves 'casi distribuidos', el problema es que si solo dependemos de esa cantidad de bloque, la busqueda de alguna clave se hace más compleja, porque vamos a tardanos más en encontrarla. Por esa razón, y respondiendo a la pregunta de `¿Realmente importa el tamaño`, pues la verdad es que sí, porque mientras más vayamos agrandando la tabla, las claves que teniamos, van a volver a volver a distribuir con mucha menos probabilidad de que algún bloque tenga la mayoria de claves de la cantidad total de clave.
+Para un Hash Abierto sabemos que podemos encadenar colisiones sin importa el tamaño de la tabla, ya que, si tenemos una tabla de 5 bloques, el problema es que si solo dependemos de esa cantidad de bloque, la busqueda de las clave se hace más compleja, porque vamos a tardanos más en encontrarla. Por esa razón es importante la redimensión de la tabla en un Hash Abierto, para así poder tener la menor cantidad de claves encadenadas en cada bloque y la busuqeda sea rápida.
 
