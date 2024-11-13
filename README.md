@@ -25,21 +25,22 @@ valgrind ./tp_hash pokedex.csv
 ---
 ##  Funcionamiento
 
-Explicación de cómo funcionan las estructuras desarrolladas en el TP y el funcionamiento general del mismo.
+- Se creó un programa que lee el archivo `pokedex.csv` y almacena todos lo datos en un diccionario. Así quedaría el Stack y Heap de `tp_hash.c`.
 
 <div align="center">
-<img width="70%" src="img/hash_pokemones.svg">
+<img width="70%" src="img/hash_pokemon.png">
 </div>
 
+- Decidí que la estructura, en vez de ser `struct pokemon` sea `struct info_pokemon`, ya que antes en la estructura se le asignaba el nombre y sus estadisticas, ahora solo guardaré las estadisticas, ya que el nombre es una clave, mejor tenerlo afuera de la estructura.
 
 ```c
-int *vector = realloc(vector_original, (n+1)*sizeof(int));
-
-if(vector == NULL)
-    return -1;
-vector_original = vector;
+typedef struct pokemon {
+	char tipo;
+	int fuerza;
+	int destreza;
+	int resistencia;
+} info_pokemon;
 ```
-
 
 # IMPLEMENTACIÓN TDA HASH
 

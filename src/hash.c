@@ -1,7 +1,6 @@
 #include "hash.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 const size_t CAPACIDAD_MINIMA = 3;
 const size_t CANTIDAD_MAXIMA_POR_BLOQUE = 10;
@@ -60,7 +59,7 @@ size_t hash_cantidad(hash_t *hash)
 	return !hash ? 0 : hash->cantidad_pares_totales;
 }
 
-nodo_par_t *crear_par(char *clave, void *valor)
+nodo_par_t *crear_nodo_par(char *clave, void *valor)
 {
 	nodo_par_t *mi_par = calloc(1, sizeof(nodo_par_t));
 	if (!mi_par)
@@ -75,21 +74,21 @@ nodo_par_t *crear_par(char *clave, void *valor)
 	return mi_par;
 }
 
-nodo_par_t **buscar_puntero_a_par(nodo_par_t **nodo_actual, char *clave)
+nodo_par_t **buscar_puntero_a_nodo(nodo_par_t **puntero_actual, char *clave)
 {
-	if (!*nodo_actual || strcmp((*nodo_actual)->clave, clave) == 0)
-		return nodo_actual;
-	return buscar_puntero_a_par(&(*nodo_actual)->siguiente, clave);
+	if (!*puntero_actual || strcmp((*puntero_actual)->clave, clave) == 0)
+		return puntero_actual;
+	return buscar_puntero_a_nodo(&(*puntero_actual)->siguiente, clave);
 }
 
-nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
+nodo_par_t **obtener_puntero_a_nodo(bloque_t *tabla_hash, size_t tamaño,
 				   char *clave, size_t *posicion)
 {
 	size_t hasheo = funcion_hash((const char *)clave);
 	size_t posicion_en_la_tabla = hasheo % tamaño;
 	if (posicion)
 		*posicion = posicion_en_la_tabla;
-	return buscar_puntero_a_par(
+	return buscar_puntero_a_nodo(
 		&tabla_hash[posicion_en_la_tabla].nodo_inicio, clave);
 }
 
@@ -107,21 +106,21 @@ bool redimensionar_tabla_hash(hash_t *hash,
 		nodo_par_t **nodo = &(hash->tabla_hash[i].nodo_inicio);
 		while (*nodo) {
 			size_t posicion_en_la_tabla;
-			nodo_par_t **posicion_final =
-				obtener_puntero_a_par(nueva_tabla_hash,
+			nodo_par_t **lugar_encontrado =
+				obtener_puntero_a_nodo(nueva_tabla_hash,
 						      nueva_capacidad,
 						      (*nodo)->clave,
 						      &posicion_en_la_tabla);
-			*posicion_final = *nodo;
+			*lugar_encontrado = *nodo;
 			(*nodo) = (*nodo)->siguiente;
-			(*posicion_final)->siguiente = NULL;
+			(*lugar_encontrado)->siguiente = NULL;
 			nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		}
 	}
 	free(hash->tabla_hash);
 	hash->tabla_hash = nueva_tabla_hash;
 	hash->capacidad_tabla_hash = nueva_capacidad;
-	*actualizar_doble_puntero = obtener_puntero_a_par(
+	*actualizar_doble_puntero = obtener_puntero_a_nodo(
 		hash->tabla_hash, hash->capacidad_tabla_hash, clave, posicion);
 	return true;
 }
@@ -132,7 +131,7 @@ bool tope_porcentaje_de_capacidad(size_t cantidad_pares, double tamaño_tabla)
 	       (size_t)(tamaño_tabla * FACTOR_PORCENTAJE_CAPACIDAD);
 }
 
-bool tope_maximo_nodos_enlazados(bloque_t *tabla, size_t posicion)
+bool tope_maximo_de_nodos_en_bloque(bloque_t *tabla, size_t posicion)
 {
 	return tabla[posicion].cantidad_pares >= CANTIDAD_MAXIMA_POR_BLOQUE;
 }
@@ -143,13 +142,13 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 		return false;
 
 	size_t posicion_en_la_tabla;
-	nodo_par_t **par = obtener_puntero_a_par(hash->tabla_hash,
+	nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
 						 hash->capacidad_tabla_hash,
 						 clave, &posicion_en_la_tabla);
 
 	if (tope_porcentaje_de_capacidad(hash->cantidad_pares_totales,
 					 (double)hash->capacidad_tabla_hash) ||
-	    tope_maximo_nodos_enlazados(hash->tabla_hash,
+	    tope_maximo_de_nodos_en_bloque(hash->tabla_hash,
 					posicion_en_la_tabla)) {
 		if (!redimensionar_tabla_hash(hash, &par, clave,
 					      &posicion_en_la_tabla)) {
@@ -160,7 +159,7 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 	void *devolver = NULL;
 
 	if (!*par) {
-		nodo_par_t *nuevo_par = crear_par(clave, valor);
+		nodo_par_t *nuevo_par = crear_nodo_par(clave, valor);
 		if (!nuevo_par)
 			return false;
 		(*par) = nuevo_par;
@@ -181,7 +180,7 @@ void *hash_buscar(hash_t *hash, char *clave)
 {
 	if (!hash || !clave)
 		return NULL;
-	nodo_par_t **par = obtener_puntero_a_par(
+	nodo_par_t **par = obtener_puntero_a_nodo(
 		hash->tabla_hash, hash->capacidad_tabla_hash, clave, NULL);
 	return (*par) ? (*par)->valor : NULL;
 }
@@ -190,7 +189,7 @@ bool hash_contiene(hash_t *hash, char *clave)
 {
 	if (!hash || !clave)
 		return false;
-	return *(obtener_puntero_a_par(
+	return *(obtener_puntero_a_nodo(
 		hash->tabla_hash, hash->capacidad_tabla_hash, clave, NULL));
 }
 
@@ -200,7 +199,7 @@ void *hash_quitar(hash_t *hash, char *clave)
 		return NULL;
 
 	size_t posicion_en_la_tabla;
-	nodo_par_t **par = obtener_puntero_a_par(hash->tabla_hash,
+	nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
 						 hash->capacidad_tabla_hash,
 						 clave, &posicion_en_la_tabla);
 	void *valor_guardado = NULL;

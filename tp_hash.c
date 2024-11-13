@@ -3,23 +3,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define TEXTO_MAX 100
 
 typedef struct pokemon {
-	char *nombre;
 	char tipo;
 	int fuerza;
 	int destreza;
 	int resistencia;
-} Pokemon;
+} info_pokemon;
 
 bool agregar_nombre(const char *str, void *ctx)
 {
 	char *nuevo = malloc(strlen(str) + 1);
 	if (nuevo == NULL) {
 		fprintf(stderr,
-			"Pokemon %s no pudo ser asignado a la pokedex, problema con asignar memoria\n",
+			"Problema al asignar memoria para %s tras leer el archivo\n",
 			str);
 		return false;
 	}
@@ -46,24 +46,24 @@ bool cargar_pokemones(struct archivo_csv *archivo_pokemones, hash_t *hash)
 					agregar_numero, agregar_numero,
 					agregar_numero };
 
-	Pokemon pokemon;
-	pokemon.nombre = NULL;
-	void *punteros[] = { &pokemon.nombre, &pokemon.tipo, &pokemon.fuerza,
+	info_pokemon pokemon;
+	char* nombre_pokemon = NULL;
+	void *punteros[] = { &nombre_pokemon, &pokemon.tipo, &pokemon.fuerza,
 			     &pokemon.destreza, &pokemon.resistencia };
 
 	size_t lineas_leidas = 0;
 
 	while (leer_linea_csv(archivo_pokemones, 5, funciones, punteros) == 5) {
-		Pokemon *nueva_ubicacion_pokemon = malloc(sizeof(Pokemon));
+		info_pokemon *nueva_ubicacion_pokemon = malloc(sizeof(info_pokemon));
 		if (!nueva_ubicacion_pokemon) {
 			return false;
 		}
 		*nueva_ubicacion_pokemon = pokemon;
-		if (!hash_insertar(hash, pokemon.nombre,
+		if (!hash_insertar(hash, nombre_pokemon,
 				   (void *)nueva_ubicacion_pokemon, NULL)) {
 			fprintf(stderr,
-				"Pokemon %s no se puede agregar correctamente a la lista\n",
-				pokemon.nombre);
+				"Pokemon %s no se puede agregar correctamente al diccionario\n",
+				nombre_pokemon);
 		}
 		lineas_leidas++;
 	}
@@ -78,17 +78,8 @@ bool cargar_pokemones(struct archivo_csv *archivo_pokemones, hash_t *hash)
 
 void destruir_pokemones(void *_pokemon)
 {
-	Pokemon *pokemon = (Pokemon *)_pokemon;
-	free(pokemon->nombre);
+	info_pokemon *pokemon = (info_pokemon *)_pokemon;
 	free(pokemon);
-}
-
-int comparar_nombre_pokemon(void *_p1, void *_p2)
-{
-	Pokemon *p1 = (Pokemon *)_p1;
-	Pokemon *p2 = (Pokemon *)_p2;
-
-	return strcmp(p1->nombre, p2->nombre);
 }
 
 void mostrar_menu()
@@ -101,13 +92,15 @@ void mostrar_menu()
 	printf("Opcion: ");
 }
 
-void informacion_del_pokemon(Pokemon *pokemon_encontrado)
-{
-	printf("- Datos del pokemon %s:\n", pokemon_encontrado->nombre);
-	printf("   Tipo: %c\n", pokemon_encontrado->tipo);
-	printf("   Fuerza: %d\n", pokemon_encontrado->fuerza);
-	printf("   Destreza: %d\n", pokemon_encontrado->destreza);
-	printf("   Resistencia: %d\n", pokemon_encontrado->resistencia);
+void informacion_del_pokemon(char* nombre_pokemon, info_pokemon *pokemon_encontrado)
+{	
+	printf("\n");
+	printf(" - Datos del pokemon %s:\n", nombre_pokemon);
+	printf("     Tipo: %c\n", pokemon_encontrado->tipo);
+	printf("     Fuerza: %d\n", pokemon_encontrado->fuerza);
+	printf("   	 Destreza: %d\n", pokemon_encontrado->destreza);
+	printf("   	 Resistencia: %d\n", pokemon_encontrado->resistencia);
+	printf("\n");
 }
 
 bool imprimir_pokemones(char *clave, void *valor, void *ctx)
@@ -158,13 +151,12 @@ int main(int argc, char *argv[])
 				if (fgets(texto, sizeof(texto), stdin) !=
 				    NULL) {
 					texto[strcspn(texto, "\n")] = '\0';
-					Pokemon *pokemon_encontrado =
-						(Pokemon *)hash_buscar(
+					info_pokemon *pokemon_encontrado =
+						(info_pokemon *)hash_buscar(
 							diccionario_pokemon,
 							texto);
 					if (pokemon_encontrado) {
-						informacion_del_pokemon(
-							pokemon_encontrado);
+						informacion_del_pokemon(texto, pokemon_encontrado);
 					} else {
 						printf("Pokemon no encontrado\n");
 					}
