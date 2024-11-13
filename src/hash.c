@@ -82,7 +82,7 @@ nodo_par_t **buscar_puntero_a_nodo(nodo_par_t **puntero_actual, char *clave)
 }
 
 nodo_par_t **obtener_puntero_a_nodo(bloque_t *tabla_hash, size_t tamaño,
-				   char *clave, size_t *posicion)
+				    char *clave, size_t *posicion)
 {
 	size_t hasheo = funcion_hash((const char *)clave);
 	size_t posicion_en_la_tabla = hasheo % tamaño;
@@ -106,17 +106,16 @@ bool redimensionar_tabla_hash(hash_t *hash,
 		nodo_par_t **nodo = &(hash->tabla_hash[i].nodo_inicio);
 		while (*nodo) {
 			size_t posicion_en_la_tabla;
-			nodo_par_t **lugar_encontrado =
-				obtener_puntero_a_nodo(nueva_tabla_hash,
-						      nueva_capacidad,
-						      (*nodo)->clave,
-						      &posicion_en_la_tabla);
+			nodo_par_t **lugar_encontrado = obtener_puntero_a_nodo(
+				nueva_tabla_hash, nueva_capacidad,
+				(*nodo)->clave, &posicion_en_la_tabla);
 			*lugar_encontrado = *nodo;
 			(*nodo) = (*nodo)->siguiente;
 			(*lugar_encontrado)->siguiente = NULL;
 			nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		}
 	}
+	
 	free(hash->tabla_hash);
 	hash->tabla_hash = nueva_tabla_hash;
 	hash->capacidad_tabla_hash = nueva_capacidad;
@@ -143,13 +142,13 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 
 	size_t posicion_en_la_tabla;
 	nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
-						 hash->capacidad_tabla_hash,
-						 clave, &posicion_en_la_tabla);
+						  hash->capacidad_tabla_hash,
+						  clave, &posicion_en_la_tabla);
 
 	if (tope_porcentaje_de_capacidad(hash->cantidad_pares_totales,
 					 (double)hash->capacidad_tabla_hash) ||
 	    tope_maximo_de_nodos_en_bloque(hash->tabla_hash,
-					posicion_en_la_tabla)) {
+					   posicion_en_la_tabla)) {
 		if (!redimensionar_tabla_hash(hash, &par, clave,
 					      &posicion_en_la_tabla)) {
 			return false;
@@ -200,8 +199,8 @@ void *hash_quitar(hash_t *hash, char *clave)
 
 	size_t posicion_en_la_tabla;
 	nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
-						 hash->capacidad_tabla_hash,
-						 clave, &posicion_en_la_tabla);
+						  hash->capacidad_tabla_hash,
+						  clave, &posicion_en_la_tabla);
 	void *valor_guardado = NULL;
 	if (*par) {
 		valor_guardado = (*par)->valor;
