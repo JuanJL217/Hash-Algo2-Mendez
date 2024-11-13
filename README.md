@@ -110,39 +110,45 @@ El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la ta
 Para poder apuntar a algún nodo, tenemos 2 maneras, haciendo simplemente `nodo_par_t* nodo = nodo_par` aquí estoy apuntando directamente al nodo, por eso es un puntero simple, pero, ¿quién más está apuntando a mi nodo? Claro, el nodo anterior tiene la referencia a mi nodo actual con `->siguiente`. entonces, yo apuntaré a la dirección de memoria de `->siguiente`. Lo que genero con eso es que tengo una manipulación más directa de los nodos que con un nodo simple y minimizando los if (así como tener menos errores).
 
 ```c
-nodo_par_t **buscar_puntero_a_par(nodo_par_t **nodo_actual, char *clave)
+	// Aquí llamamos a la funcion obtener_puntero_a_nodo dentro de la función hash_insertar
+	size_t posicion_en_la_tabla;
+	nodo_par_t **par = obtener_puntero_a_nodo(hash->tabla_hash,
+						 hash->capacidad_tabla_hash,
+						 clave, &posicion_en_la_tabla);
+```
+
+```c
+nodo_par_t **buscar_puntero_a_nodo(nodo_par_t **puntero_actual, char *clave)
 {
-	if (!*nodo_actual || strcmp((*nodo_actual)->clave, clave) == 0)
-		return nodo_actual;
-	return buscar_puntero_a_par(&(*nodo_actual)->siguiente, clave);
+	if (!*puntero_actual || strcmp((*puntero_actual)->clave, clave) == 0)
+		return puntero_actual;
+	return buscar_puntero_a_nodo(&(*puntero_actual)->siguiente, clave);
 }
 
-nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
+nodo_par_t **obtener_puntero_a_nodo(bloque_t *tabla_hash, size_t tamaño,
 				   char *clave, size_t *posicion)
 {
 	size_t hasheo = funcion_hash((const char *)clave);
 	size_t posicion_en_la_tabla = hasheo % tamaño;
 	if (posicion)
 		*posicion = posicion_en_la_tabla;
-	return buscar_puntero_a_par(
+	return buscar_puntero_a_nodo(
 		&tabla_hash[posicion_en_la_tabla].nodo_inicio, clave);
 }
 ```
 1) Le aplico una función de hash a la clave.  
-2) El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash. Si la variable `posicion` no es NULL (parámetro), entonces le asginaré dicho valor numerico. Eso me servirá afuera de esta función para poder contabilidad la cantidad de nodos enlazados en cada bloque, si es que es una nueva clave.
-3) Por último llamo a la función recursiva `buscar_puntero_a_par` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo que ya existe la clave).
+2) El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash. Si la variable `posicion` no es NULL (parámetro), entonces le asginaré dicho valor numerico. Eso me servirá afuera de esta función para poder contabilizar la cantidad de nodos enlazados en cada bloque, si es que es una nueva clave.
+3) Por último llamo a la función recursiva `buscar_puntero_a_nodo` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo que ya existe la clave).
 
 ```c
-	nodo_par_t **par = obtener_puntero_a_par(
-		hash->tabla_hash, hash->capacidad_tabla_hash, clave);
-
 	void *devolver = NULL;
 
 	if (!*par) {
-		nodo_par_t *nuevo_par = crear_par(clave, valor);
+		nodo_par_t *nuevo_par = crear_nodo_par(clave, valor);
 		if (!nuevo_par)
 			return false;
 		(*par) = nuevo_par;
+		hash->tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		hash->cantidad_pares_totales++;
 	} else {
 		devolver = (*par)->valor;
@@ -152,18 +158,22 @@ nodo_par_t **obtener_puntero_a_par(bloque_t *tabla_hash, size_t tamaño,
 - En esta parte de la funcióñ `hash_insertar`, una vez que obtenemos dicho puntero doble, podemos apreciar que tenemos solo 1 verificación, si `*par` apunta a NULL o no  
 - Si apunta a NULL, significa que la clave es nueva, en cambio, si nos hubiese dado una dirección válida, significa que la clave ya se encuentra insertada. Con esto nos ahorramos verificar distintas cosas: Si trabajamos con puntero simple, tendriamos que hacer una validación de si la cantidad de pares en dicho bloque es 0 o no, si es 0, entonces le asigno como primer posicion, y si no, entonces pongo en siguiente del nodo final y también, al trabajar con punteros simple, debemos tener un puntero al nodo anterior, entonces en vez de tener más variables, hice 2 en 1. Visualmente tenemos esto con doble puntero:
 
+1) Ejemplo de como tendriamos los nodos enlazados dentro de un bloque de la tabla hash.  
 <div align="center">
 <img width="70%" src="img/ejemplo.png">
 </div>
 
+2) Insertar un elemento que no está en el hash.  
 <div align="center">
 <img width="70%" src="img/puntero_doble_repetido.png">
 </div>
 
+3) Insertar un elemento que ya se encuentra en el hash.  
 <div align="center">
 <img width="70%" src="img/puntero_doble_nuevo.png">
 </div>
 
+4) Resultado final de los 2 escenarios anteriores.  
 <div align="center">
 <img width="70%" src="img/resultado_final.png">
 </div>
@@ -182,25 +192,28 @@ bool redimensionar_tabla_hash(hash_t *hash,
 	bloque_t *nueva_tabla_hash = calloc(nueva_capacidad, sizeof(bloque_t));
 	if (!nueva_tabla_hash)
 		return false;
-
 ```
 
 - Lo que hace este cóðigo es, en primer lugar, crear un nuevo vector con un tamaño duplicado al que ya tenía (`FACTOR_CRECIMIENTO = 2`). Esta función es booleana, porque, en el caso que la creación del vector dé error sin verificación (que la funcion sea un `void`, en vez de un `bool`), significa que no debería ingresar nada al hash. Si yo ignoro esto, y decido insertar pares en mi tabla, aunque haya dado error, significa que no se va a redimensionar pero seguiré metiendo pares, lo que ocacionaria en un ciclo infinito de nunca redimensionar y mi tabla tendrá siempre dicha cantidad de bloques, y muchos pares, lo que se tardaría en poder buscar algún nodo.
 
 - Una vez que creamos la nueva tabla hash, vamos a pasar todos los nodos existentes de mi antigua tabla, a la nueva tabla. Visualmente tenemos esto:  
 
+1) Creación de la tabla.
 <div align="center">
 <img width="70%" src="img/paso_1_redimensionar.png">
 </div>
 
+2) Busqueda de la posicion del nodo en la nueva tabla.
 <div align="center">
 <img width="70%" src="img/paso_2_redimensionar.png">
 </div>
 
+3) Asignación de punteros del nodo en la nueva tabla.
 <div align="center">
 <img width="70%" src="img/paso_3_redimensionar.png">
 </div>
 
+4) Resultado final en un nodo.
 <div align="center">
 <img width="70%" src="img/paso_4_redimensionar.png">
 </div>
@@ -212,19 +225,17 @@ bool redimensionar_tabla_hash(hash_t *hash,
 		nodo_par_t **nodo = &(hash->tabla_hash[i].nodo_inicio);
 		while (*nodo) {
 			size_t posicion_en_la_tabla;
-			nodo_par_t **posicion_final =
-				obtener_puntero_a_par(nueva_tabla_hash,
-						      nueva_capacidad,
-						      (*nodo)->clave,
-						      &posicion_en_la_tabla);
-			*posicion_final = *nodo;
+			nodo_par_t **lugar_encontrado = obtener_puntero_a_nodo(
+				nueva_tabla_hash, nueva_capacidad,
+				(*nodo)->clave, &posicion_en_la_tabla);
+			*lugar_encontrado = *nodo;
 			(*nodo) = (*nodo)->siguiente;
-			(*posicion_final)->siguiente = NULL;
+			(*lugar_encontrado)->siguiente = NULL;
 			nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		}
 	}
 ```
-
+- Cada vez que pasemos nodos de la tabla antigua a la tabla nueva, igual vamos a tener que tener la cantidad de nodos por bloques actualizada, por eso la parte del código de `nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++`.
 - Por último, una vez que repartimos cada nodo de la antigua tabla a la nueva, podemos liberar la antigua tabla y referenciar la nueva tabla en mi hash. Al igual que mi nueva capacidad.
 - Por último, voy a actualizar mi doble puntero, ya que al ser una nueva tabla, debo buscar la nueva ubicación donde debo insertar o actualizar.
 
