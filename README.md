@@ -283,20 +283,30 @@ Una función de hash se basa es la aplicación de diversos métodos matemáticos
 
 
 ## Explicá 3 formas diferentes de implementar un diccionario (tabla de hash cuenta como 1)
-Como sabemos que un Diccionario tiene la idea de guardar información que está asociada a una clave, se pueden implementar de varias maneras:
+Como sabemos que un Diccionario tiene la definición de guardar información que está asociada a una clave, se pueden implementar de varias maneras:
 1) Tabla Hash
-Esta forma se basa en transformar las claves en información numerica, trans alguna formula matematica, y dicho numero, es la posición donde ingresaremos nuestra clave y valor.
-Lo bueno: Tanto las formulas y saber en qué posición debe ir cada par `clave-valor` son instantaneas.
+Esta forma se basa en transformar las claves en información numerica trans alguna formula matematica, y dicho numero (en el intervalo de 0 hasta el tamaño de la tabla), es la posición donde ingresaremos nuestra clave y valor. (Cómo toda mi implementación usé tabla hash, no subo imágenes de qué es, porque ya las subí).  
+Lo bueno: Tanto las formulas matemáticas, como saber en qué posición está cada par `clave-valor` son instantaneas.
 Lo malo: Las claves no van a estar ordenadas, el único 'orden' que seguirán, depende de la función de hashing que le demos.
-3) Lista Simplemente Enlazada
+
+2) Nodos Simplemente Enlazados (Parecido a una Lista)
 A diferencia de la tabla hash, aquí debemos iterar todas las claves para verificar si ya existe o si no, y poder agregar o actualizar.
 Lo bueno: Podemos hacer que sea ordenado o no (Para nuestro ejemplo diré que será ordenado).
 Lo malo: Al ser nodos enlazados, para buscar una clave, vamos a tener que iterar, en el peor caso, todos los elementos, entonces esta forma lo convierte en la más lenta de nuestras 3 opciones.
-2) Árbol Binario de Busqueda
+
+<div align="center">
+<img width="70%" src="img/diccionario_nodos_enlazados.png">
+</div>
+
+3) Árbol Binario de Busqueda
 Como ya sabemos que un ABB es un metodo de ordenamiento comparativo, podriamos guardar claves y valores.
 Lo bueno: Al ser comparativo, tenemos la ventaja de que las claves van a estar ordenadas
 Lo malo: Al ser de busqueda, no va a ser rápido como con una tabla hash, pero es más rapido que usando una lista.
 En lo personal, si quiero que este ordenado y sea rápido, obtaría por esta opción.
+
+<div align="center">
+<img width="70%" src="img/diccionario_abb.png">
+</div>
 
 ## Explique por qué es importante el tamaño de la tabla (tanto para tablas abiertas como cerradas)
 Para un Hash Cerrado, sabiendo que la tabla de hash es donde voy a almacenar mis claves y valores, es esencial aumentar el tamaño, porque si no aumento el tamaño de mi tabla, no voy a poder seguir ingresando nuevos pares, entonces podemos concluir que el tamaño sí importa.
