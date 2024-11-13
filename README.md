@@ -250,10 +250,10 @@ bool redimensionar_tabla_hash(hash_t *hash,
 }
 ```
 ## ¿CÓMO SABEMOS SI HAY QUE REDIMENSIONAR O NO?
-
+ 
 Tengo 2 verificaciones para saber si redimensionar o no:  
 
-1) Si se alcanzó un cierto tope de cantidad de elementos en base a la cantidad de bloques de nuestra tabla:
+1) Si la cantidad de nodos es igual o mayor a al 70% de la capacidad total del vector (`FACTOR_PORCENTAJE_CAPACIDAD = 0.7`)
 
 ```c
 bool tope_porcentaje_de_capacidad(size_t cantidad_pares, double tamaño_tabla)
@@ -262,7 +262,7 @@ bool tope_porcentaje_de_capacidad(size_t cantidad_pares, double tamaño_tabla)
 	       (size_t)(tamaño_tabla * FACTOR_PORCENTAJE_CAPACIDAD);
 }
 ```
-2) Si llegó a una cantidad máxima de nodos en algún bloque. Con esto ganamos que, en el caso que se dé la mala suerte que un bloque obtenga la mayoria de los pares (por no decir todos), entonces esa verificación nos ayuda que buscar sea O(1), porque como maximo, solo iteraré 10 veces, más de eso, no podré, por eso mando a redimensionar, para que el tiempo de busqueda, sea extremadamente corto.
+2) Si llegó a una cantidad máxima de nodos en algún bloque. Con esto ganamos que, en el caso que se dé la mala suerte que un bloque obtenga la mayoria de los pares (por no decir todos), entonces esta verificación nos ayuda que buscar sea O(1), porque como maximo, solo iteraré 10 veces, más de eso, no podré, por eso mando a redimensionar y se vuelvan a distribuir los nodos.
 
 ```c
 bool tope_maximo_nodos_enlazados(bloque_t *tabla, size_t posicion)
