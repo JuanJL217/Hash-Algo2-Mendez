@@ -24,6 +24,8 @@ struct hash {
 	size_t cantidad_pares_totales;
 };
 
+// --------- FUNCION HASH ---------
+
 size_t funcion_hash(const char *clave)
 {
 	size_t valor_hash = 2166136261U;
@@ -35,29 +37,7 @@ size_t funcion_hash(const char *clave)
 	return valor_hash;
 }
 
-hash_t *hash_crear(size_t capacidad_inicial)
-{
-	hash_t *hash = calloc(1, sizeof(hash_t));
-	if (!hash) {
-		return NULL;
-	}
-	if (capacidad_inicial <= CAPACIDAD_MINIMA) {
-		hash->capacidad_tabla_hash = CAPACIDAD_MINIMA;
-	} else {
-		hash->capacidad_tabla_hash = capacidad_inicial;
-	}
-	hash->tabla_hash = calloc(hash->capacidad_tabla_hash, sizeof(bloque_t));
-	if (!hash->tabla_hash) {
-		free(hash);
-		return NULL;
-	}
-	return hash;
-}
-
-size_t hash_cantidad(hash_t *hash)
-{
-	return !hash ? 0 : hash->cantidad_pares_totales;
-}
+// --------- FUNCIONES PARA LOS NODOS ---------
 
 nodo_par_t *crear_nodo_par(char *clave, void *valor)
 {
@@ -92,6 +72,54 @@ nodo_par_t **obtener_puntero_a_nodo(bloque_t *tabla_hash, size_t tamaño,
 		&tabla_hash[posicion_en_la_tabla].nodo_inicio, clave);
 }
 
+// --------- VERIFICACIONES ---------
+
+bool tope_porcentaje_de_capacidad(size_t cantidad_pares, double tamaño_tabla)
+{
+	return cantidad_pares >=
+	       (size_t)(tamaño_tabla * FACTOR_PORCENTAJE_CAPACIDAD);
+}
+
+bool tope_maximo_de_nodos_en_bloque(bloque_t *tabla, size_t posicion)
+{
+	return tabla[posicion].cantidad_pares >= CANTIDAD_MAXIMA_POR_BLOQUE;
+}
+
+bool verificar_redimension(hash_t *hash, size_t posicion_en_la_tabla)
+{
+	return tope_porcentaje_de_capacidad(
+		       hash->cantidad_pares_totales,
+		       (double)hash->capacidad_tabla_hash) ||
+	       tope_maximo_de_nodos_en_bloque(hash->tabla_hash,
+					      posicion_en_la_tabla);
+}
+
+// --------- FUNCIONES DEL TDA HASH ---------
+
+hash_t *hash_crear(size_t capacidad_inicial)
+{
+	hash_t *hash = calloc(1, sizeof(hash_t));
+	if (!hash) {
+		return NULL;
+	}
+	if (capacidad_inicial <= CAPACIDAD_MINIMA) {
+		hash->capacidad_tabla_hash = CAPACIDAD_MINIMA;
+	} else {
+		hash->capacidad_tabla_hash = capacidad_inicial;
+	}
+	hash->tabla_hash = calloc(hash->capacidad_tabla_hash, sizeof(bloque_t));
+	if (!hash->tabla_hash) {
+		free(hash);
+		return NULL;
+	}
+	return hash;
+}
+
+size_t hash_cantidad(hash_t *hash)
+{
+	return !hash ? 0 : hash->cantidad_pares_totales;
+}
+
 bool redimensionar_tabla_hash(hash_t *hash,
 			      nodo_par_t ***actualizar_doble_puntero,
 			      char *clave, size_t *posicion)
@@ -115,7 +143,7 @@ bool redimensionar_tabla_hash(hash_t *hash,
 			nueva_tabla_hash[posicion_en_la_tabla].cantidad_pares++;
 		}
 	}
-	
+
 	free(hash->tabla_hash);
 	hash->tabla_hash = nueva_tabla_hash;
 	hash->capacidad_tabla_hash = nueva_capacidad;
@@ -124,16 +152,6 @@ bool redimensionar_tabla_hash(hash_t *hash,
 	return true;
 }
 
-bool tope_porcentaje_de_capacidad(size_t cantidad_pares, double tamaño_tabla)
-{
-	return cantidad_pares >=
-	       (size_t)(tamaño_tabla * FACTOR_PORCENTAJE_CAPACIDAD);
-}
-
-bool tope_maximo_de_nodos_en_bloque(bloque_t *tabla, size_t posicion)
-{
-	return tabla[posicion].cantidad_pares >= CANTIDAD_MAXIMA_POR_BLOQUE;
-}
 
 bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 {
@@ -145,10 +163,7 @@ bool hash_insertar(hash_t *hash, char *clave, void *valor, void **encontrado)
 						  hash->capacidad_tabla_hash,
 						  clave, &posicion_en_la_tabla);
 
-	if (tope_porcentaje_de_capacidad(hash->cantidad_pares_totales,
-					 (double)hash->capacidad_tabla_hash) ||
-	    tope_maximo_de_nodos_en_bloque(hash->tabla_hash,
-					   posicion_en_la_tabla)) {
+	if (verificar_redimension(hash, posicion_en_la_tabla)) {
 		if (!redimensionar_tabla_hash(hash, &par, clave,
 					      &posicion_en_la_tabla)) {
 			return false;

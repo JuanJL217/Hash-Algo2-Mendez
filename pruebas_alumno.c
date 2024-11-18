@@ -2,6 +2,10 @@
 #include "src/hash.h"
 #include <stdlib.h>
 
+typedef struct prueba {
+	char letra;
+} prueba_t;
+
 void crear_hash()
 {
 	hash_t *hash1 = hash_crear(0);
@@ -304,9 +308,13 @@ void eliminar_elemento()
 	}
 	pa2m_afirmar(hash_cantidad(hash) == 1, "Se insertó el par: '%s'-'%li'",
 		     carrera, alumnos);
-
+	char *clave_distinta = "Naval";
+	size_t *valor_quitado = (size_t *)hash_quitar(hash, clave_distinta);
 	char *otra_direccion_de_la_misma_clave = "Informatica";
-	size_t *valor_quitado =
+	pa2m_afirmar(
+		valor_quitado == NULL || hash_cantidad(hash) == 1,
+		"Eliminar una clave que no se encuentra en el hash, retorna NULL y la cantidad de elementos no se altera");
+	valor_quitado =
 		(size_t *)hash_quitar(hash, otra_direccion_de_la_misma_clave);
 	pa2m_afirmar(hash_cantidad(hash) == 0,
 		     "Se quitó la clave '%s'. Hay 0 pares en el hash",
@@ -406,6 +414,67 @@ void eliminar_varios_elemetos()
 	hash_destruir(hash);
 }
 
+void destruir_letras_prueba(void *_letra_en_heap)
+{
+	prueba_t *letra_en_heap = (prueba_t *)_letra_en_heap;
+	free(letra_en_heap);
+}
+
+void valores_heap()
+{
+	hash_t *hash = hash_crear(1);
+	if (!hash) {
+		printf("Error al crear el diccionario");
+		return;
+	}
+	pa2m_afirmar(hash != NULL, "Nuevo Hash creado");
+
+	char *numeros[5] = { "1", "2", "3", "4", "5" };
+	char letras[5] = { 'A', 'B', 'C', 'D', 'E' };
+
+	for (size_t i = 0; i < 5; i++) {
+		prueba_t *mi_letra = calloc(1, sizeof(prueba_t));
+		if (!mi_letra) {
+			printf("Error al asignar memoria para le letra '%c'",
+			       letras[i]);
+			hash_destruir_todo(hash, destruir_letras_prueba);
+			return;
+		}
+		mi_letra->letra = letras[i];
+		if (!hash_insertar(hash, numeros[i], (void *)mi_letra, NULL)) {
+			printf("Error al insertar el par clave-valor: %s-%c",
+			       numeros[i], mi_letra->letra);
+			hash_destruir_todo(hash, destruir_letras_prueba);
+		}
+		pa2m_afirmar(hash_cantidad(hash) == i + 1,
+			     "Se insertó el par: '%s'-'%c'", numeros[i],
+			     mi_letra->letra);
+	}
+
+	for (size_t j = 0; j < 5; j++) {
+		pa2m_afirmar(hash_contiene(hash, numeros[j]) == true,
+			     "La clave '%s' existe en el hash", numeros[j]);
+		prueba_t *obtener_valor =
+			(prueba_t *)hash_buscar(hash, numeros[j]);
+		pa2m_afirmar(obtener_valor->letra == letras[j],
+			     "Su valor, almacenado en el heap, es '%c'",
+			     obtener_valor->letra);
+	}
+
+	for (size_t k = 0; k < 2; k++) {
+		prueba_t *mi_letra = hash_quitar(hash, numeros[k]);
+		pa2m_afirmar(
+			hash_cantidad(hash) == 4 - k,
+			"Se quitó la clave '%s'. Quedan %li pares en el hash",
+			numeros[k], 4 - k);
+		pa2m_afirmar(mi_letra->letra == letras[k], "Su valor es '%c'",
+			     mi_letra->letra);
+		free(mi_letra);
+	}
+
+	hash_destruir_todo(hash, destruir_letras_prueba);
+}
+
 void test_de_volumen()
 {
 	hash_t *hash = hash_crear(1);
@@ -467,6 +536,8 @@ void test_de_volumen()
 		hash_quitar(hash, claves[k]);
 		free(claves[k]);
 	}
+
+	pa2m_afirmar(hash_cantidad(hash) == 0, "Hash vacío");
 
 	hash_destruir_todo(hash, NULL);
 }
@@ -573,6 +644,9 @@ int main()
 	pa2m_nuevo_grupo("PRUEBA ELIMINAR");
 	eliminar_elemento();
 	eliminar_varios_elemetos();
+
+	pa2m_nuevo_grupo("PRUEBA INSERTAR Y ELIMINAR VALOR EN EL HEAP");
+	valores_heap();
 
 	pa2m_nuevo_grupo("PRUEBA DE VOLUMEN");
 	test_de_volumen();

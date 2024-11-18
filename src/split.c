@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define FINAL_DEL_STRING '\0'
+const char FINAL_DEL_STRING = '\0';
 
 void agregar_partes(struct Partes *resultado, const char *inicio_string,
 		    const char *string, size_t posicion)
@@ -42,11 +42,13 @@ struct Partes *dividir_string(const char *string, char separador)
 	resultado->cantidad = cantidad_de_partes(string, separador);
 	resultado->string = malloc(resultado->cantidad * sizeof(char *));
 	if (!resultado->string) {
+		free(resultado);
 		return NULL;
 	}
 
 	size_t posicion = 0;
 	const char *inicio_string = string;
+
 	while (*string != FINAL_DEL_STRING) {
 		if (*string == separador) {
 			agregar_partes(resultado, inicio_string, string,
