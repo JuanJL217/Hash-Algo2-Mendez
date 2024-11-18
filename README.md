@@ -137,9 +137,9 @@ Mencionar:
  
 Tengo 2 verificaciones para saber si redimensionar o no:  
 
-	1) Si la cantidad de nodos es igual o mayor a al 70% de la capacidad total del vector (`FACTOR_PORCENTAJE_CAPACIDAD = 0.70`)  
+1) Si la cantidad de nodos es igual o mayor a al 70% de la capacidad total del vector (`FACTOR_PORCENTAJE_CAPACIDAD = 0.70`)  
 
-	2) Si llegó a una cantidad máxima de nodos en algún bloque. Con esto ganamos que, en el caso que se dé la mala suerte que un bloque obtenga la mayoria de los pares (por no decir todos), entonces esta verificación nos ayuda que buscar sea O(1), porque como maximo, solo iteraré 10 veces, más de eso, no podré, por eso mando a redimensionar y se vuelvan a distribuir los nodos.  
+2) Si llegó a una cantidad máxima de nodos en algún bloque. Con esto ganamos que, en el caso que se dé la mala suerte que un bloque obtenga la mayoria de los pares (por no decir todos), entonces esta verificación nos ayuda que buscar sea O(1), porque como maximo, solo iteraré 10 veces, más de eso, no podré, por eso mando a redimensionar y se vuelvan a distribuir los nodos.  
 
 ## Preguntas:
 
