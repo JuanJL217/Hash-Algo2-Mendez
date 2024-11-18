@@ -75,9 +75,9 @@ El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la ta
 - Como vamos a trabajar con nodos enlazados, vamos a tener una función recursiva de busqueda para obtener algún nodo, ya sea para elimnar o insertar (todo es buscar).  
 - Para poder apuntar a algún nodo, tenemos 2 maneras, haciendo simplemente `nodo_par_t* nodo = nodo_par` aquí estoy apuntando directamente al nodo, por eso es un puntero simple, pero, ¿quién más está apuntando a mi nodo? Claro, el nodo anterior tiene la referencia a mi nodo actual con `->siguiente`. entonces, yo apuntaré a la dirección de memoria de `->siguiente`. Lo que genero con eso es que tengo una manipulación más directa de los nodos que con un nodo simple y minimizando los if (así como tener menos errores).  
 - Pasos para la busqueda:  
-1) Le aplico una función de hash a la clave.  
-2) El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash. Si la variable `posicion` no es NULL (parámetro), entonces le asginaré dicho valor numerico. Eso me servirá afuera de esta función para poder contabilizar la cantidad de nodos enlazados en cada bloque, si es que es una nueva clave.
-3) Por último llamo a la función recursiva `buscar_puntero_a_nodo` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo que ya existe la clave).  
+	1) Le aplico una función de hash a la clave.  
+	2) El hasheo lo acomodo entre el intervalo de [0, tamaño del vector], obteniendo la posición de la clave en al tabla hash. Si la variable `posicion` no es NULL (parámetro), entonces le asginaré dicho valor numerico. Eso me servirá afuera de esta función para poder contabilizar la cantidad de nodos enlazados en cada bloque, si es que es una nueva clave.
+	3) Por último llamo a la función recursiva `buscar_puntero_a_nodo` que de devuelve el doble puntero. Con esto puedo tener solo 2 opciones, donde `*par` puede apuntar a NULL (el final de todos los nodos) o a una dirección de memoria válida (algún nodo que ya existe la clave).  
 
 - Una vez obtengamos el doble puntero, podemos apreciar que tenemos solo 1 verificación, si `*par` apunta a NULL o no  
 - Si apunta a NULL, significa que la clave es nueva, en cambio, si nos hubiese dado una dirección válida, significa que la clave ya se encuentra insertada. Con esto nos ahorramos verificar distintas cosas: Si trabajamos con puntero simple, tendriamos que hacer una validación de si la cantidad de pares en dicho bloque es 0 o no, si es 0, entonces le asigno como primer posicion, y si no, entonces pongo en siguiente del nodo final y también, al trabajar con punteros simple, debemos tener un puntero al nodo anterior, entonces en vez de tener más variables, hice 2 en 1. Visualmente tenemos esto con doble puntero:
@@ -137,9 +137,9 @@ Mencionar:
  
 Tengo 2 verificaciones para saber si redimensionar o no:  
 
-1) Si la cantidad de nodos es igual o mayor a al 70% de la capacidad total del vector (`FACTOR_PORCENTAJE_CAPACIDAD = 0.70`)  
+	1) Si la cantidad de nodos es igual o mayor a al 70% de la capacidad total del vector (`FACTOR_PORCENTAJE_CAPACIDAD = 0.70`)  
 
-2) Si llegó a una cantidad máxima de nodos en algún bloque. Con esto ganamos que, en el caso que se dé la mala suerte que un bloque obtenga la mayoria de los pares (por no decir todos), entonces esta verificación nos ayuda que buscar sea O(1), porque como maximo, solo iteraré 10 veces, más de eso, no podré, por eso mando a redimensionar y se vuelvan a distribuir los nodos.  
+	2) Si llegó a una cantidad máxima de nodos en algún bloque. Con esto ganamos que, en el caso que se dé la mala suerte que un bloque obtenga la mayoria de los pares (por no decir todos), entonces esta verificación nos ayuda que buscar sea O(1), porque como maximo, solo iteraré 10 veces, más de eso, no podré, por eso mando a redimensionar y se vuelvan a distribuir los nodos.  
 
 ## Preguntas:
 
