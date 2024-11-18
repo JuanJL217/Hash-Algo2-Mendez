@@ -102,6 +102,11 @@ El operador `^=` es un `XOR`. Ya que cada caracter es un valor numerico en la ta
 <img width="70%" src="img/resultado_final.png">
 </div>
 
+## ELIMINACION DE CLAVES  
+
+- Como ya sabemos que la función de busqueda obtenemos un doble puntero, eliminar la clave es más sencillo.  
+- Una vez que conseguimos el doble puntero, podemos ver si estamos `*par` apunta a `NULL` o no. Si la dirección es NULL, es porque no existe la clave, ya que recorridó todos los nodos, pero si encuentra una dirección válida, es tan fácil con decirle a `*par` que apunte al nodo siguiente, y listo, ya tenemos el nodo suelto listo para poder liberar.  
+
 ## REDIMENSION
 
 - Lo que hace el cóðigo es, en primer lugar, crear un nuevo vector con un tamaño duplicado al que ya tenía (`FACTOR_CRECIMIENTO = 2`). Dicha función de redimensión es booleana, porque, en el caso que la creación del vector dé error sin verificación (que la funcion sea un `void`, en vez de un `bool`), significa que no debería ingresar nada al hash. Si yo ignoro esto, y decido insertar pares en mi tabla, aunque haya dado error, significa que no se va a redimensionar pero seguiré metiendo pares, lo que ocacionaria en un ciclo infinito de nunca redimensionar y mi tabla tendrá siempre dicha cantidad de bloques, y muchos pares, lo que se tardaría en poder buscar algún nodo.
